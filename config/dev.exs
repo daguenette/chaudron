@@ -3,7 +3,7 @@ import Config
 # Configure your database
 config :chaudron, Chaudron.Repo,
   username: "postgres",
-  password: "postgres",
+  password: "secret",
   hostname: "localhost",
   database: "chaudron_dev",
   stacktrace: true,
