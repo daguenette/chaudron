@@ -18,6 +18,7 @@ defmodule ChaudronWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    live "/budgets", BudgetLive.Index
   end
 
   # Other scopes may use custom stacks.

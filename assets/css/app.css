@@ -3,3 +3,176 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+/* Container Layout */
+.content-container {
+    @apply px-2 sm:px-4 lg:px-6 w-[75%] mx-auto;
+}
+
+.section-spacing {
+    @apply space-y-16;
+}
+
+/* Section container with enhanced shadow */
+.section-container {
+    @apply bg-white rounded-lg px-2 py-6 sm:px-4 lg:px-6 w-full mx-auto
+         shadow-[0_4px_12px_rgba(0,0,0,0.25)];
+}
+
+/* Header Section */
+.header-wrapper {
+    @apply sm:flex sm:items-center;
+}
+
+.header-content {
+    @apply sm:flex-auto;
+}
+
+.header-title {
+    @apply text-base font-semibold text-gray-900;
+}
+
+.header-description {
+    @apply mt-2 text-sm text-gray-700;
+}
+
+/* Button Styles */
+.button-wrapper {
+    @apply mt-4 sm:ml-16 sm:mt-0 sm:flex-none;
+}
+
+.button-primary {
+    @apply block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600;
+}
+
+/* Table Layout */
+.table-wrapper {
+    @apply mt-6;
+}
+
+.table-scroll-container {
+    @apply -mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8;
+}
+
+.table-inner-wrapper {
+    @apply inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8;
+}
+
+.data-table {
+    @apply min-w-full divide-y divide-gray-300;
+}
+
+.data-table tbody {
+    @apply divide-y divide-gray-200;
+}
+
+/* Table Headers */
+.table-header {
+    @apply py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0;
+}
+
+.table-header-regular {
+    @apply px-3 py-3.5 text-left text-sm font-semibold text-gray-900;
+}
+
+/* Table Cells */
+.table-cell {
+    @apply whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0;
+}
+
+.table-cell-regular {
+    @apply whitespace-nowrap px-3 py-4 text-sm text-gray-500;
+}
+
+.table-cell-action {
+    @apply relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0;
+}
+
+/* Links */
+.action-link {
+    @apply text-indigo-600 hover:text-indigo-900;
+}
+
+/* Modal Layout */
+.modal-backdrop {
+    @apply fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-40;
+}
+
+.modal-container {
+    @apply fixed inset-0 z-50 overflow-y-auto;
+}
+
+.modal-content-wrapper {
+    @apply flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0;
+}
+
+.modal-panel {
+    @apply relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6;
+}
+
+/* Modal Close Button */
+.modal-close-button-wrapper {
+    @apply absolute right-0 top-0 hidden pr-4 pt-4 sm:block;
+}
+
+.modal-close-button {
+    @apply rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none;
+}
+
+/* Modal Content */
+.modal-body {
+    @apply sm:flex sm:items-start;
+}
+
+.modal-content {
+    @apply mt-3 text-center sm:mt-0 sm:text-left w-full;
+}
+
+.modal-title {
+    @apply text-base font-semibold leading-6 text-gray-900;
+}
+
+.modal-form-container {
+    @apply mt-4;
+}
+
+.modal-form {
+    @apply space-y-4;
+}
+
+/* Form Elements */
+.form-label {
+    @apply block text-sm font-medium leading-6 text-gray-900;
+}
+
+.input-wrapper {
+    @apply mt-2;
+}
+
+.form-input {
+    @apply block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6;
+}
+
+.currency-input-wrapper {
+    @apply relative mt-2;
+}
+
+.currency-symbol {
+    @apply pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 z-10;
+}
+
+.form-input-with-symbol {
+    @apply block w-full rounded-md border-0 py-1.5 pl-7 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6;
+}
+
+/* Modal Actions */
+.modal-actions {
+    @apply mt-5 sm:mt-4 sm:flex sm:flex-row-reverse;
+}
+
+.modal-submit-button {
+    @apply inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto;
+}
+
+.modal-cancel-button {
+    @apply mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto;
+}
