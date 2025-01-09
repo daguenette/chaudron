@@ -1,0 +1,137 @@
+defmodule Chaudron.Transactions do
+  import Ecto.Query
+  alias Chaudron.Repo
+  alias Chaudron.Transactions.Transaction
+  alias Chaudron.Budgets
+  alias Chaudron.Budgets.Budget
+
+  @doc """
+  Creates a new transaction and updates the associated budget's spent amount.
+
+  ## Required Attributes
+    * `:date` - DateTime of the transaction
+    * `:description` - String description of the transaction
+    * `:amount` - Float value of the transaction amount
+    * `:budget_id` - Integer ID of the associated budget category
+
+  ## Examples
+
+      # Create a new transaction
+      iex> create_transaction(%{
+      ...>   date: ~U[2024-01-08 10:00:00Z],
+      ...>   description: "Weekly groceries",
+      ...>   amount: 150.50,
+      ...>   budget_id: 1
+      ...> })
+      {:ok, %{transaction: %Transaction{}, budget_update: %Budget{}}}
+
+      # Will return error with invalid attributes
+      iex> create_transaction(%{
+      ...>   date: ~U[2025-01-08 10:00:00Z],  # Future date
+      ...>   amount: -50.0  # Negative amount
+      ...> })
+      {:error, :transaction, %Ecto.Changeset{}, %{}}
+  """
+  @spec create_transaction(map()) ::
+          {:ok, %{transaction: Transaction.t(), budget_update: Budget.t()}}
+          | {:error, Ecto.Multi.name(), any(), %{optional(Ecto.Multi.name()) => any()}}
+  def create_transaction(attrs \\ %{}) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:transaction, Transaction.changeset(%Transaction{}, attrs))
+    |> Ecto.Multi.run(:budget_update, fn repo, %{transaction: transaction} ->
+      budget = repo.get!(Budget, transaction.budget_id)
+      Budgets.update_spent_amount(budget)
+    end)
+    |> Repo.transaction()
+  end
+
+  @doc """
+  Updates a transaction and recalculates the budget's spent amount.
+
+  ## Examples
+
+      iex> update_transaction(transaction, %{amount: 200.0})
+      {:ok, %{transaction: %Transaction{}, budget_update: %Budget{}}}
+  """
+  @spec update_transaction(Transaction.t(), map()) ::
+          {:ok, %{transaction: Transaction.t(), budget_update: Budget.t()}}
+          | {:error, Ecto.Multi.name(), any(), %{optional(Ecto.Multi.name()) => any()}}
+  def update_transaction(%Transaction{} = transaction, attrs) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(:transaction, Transaction.changeset(transaction, attrs))
+    |> Ecto.Multi.run(:budget_update, fn repo, %{transaction: updated_transaction} ->
+      budget = repo.get!(Budget, updated_transaction.budget_id)
+      Budgets.update_spent_amount(budget)
+    end)
+    |> Repo.transaction()
+  end
+
+  @doc """
+  Gets a transaction by ID.
+
+  ## Examples
+
+      iex> get_transaction(123)
+      %Transaction{}
+
+      iex> get_transaction(456)
+      nil
+  """
+  @spec get_transaction(integer()) :: Transaction.t() | nil
+  def get_transaction(id) do
+    Repo.get(Transaction, id)
+  end
+
+  @doc """
+  Lists transactions with optional filters.
+
+  ## Options
+    * `:budget_id` - Filter by budget category
+    * `:start_date` - Filter transactions after this date
+    * `:end_date` - Filter transactions before this date
+
+  ## Examples
+
+      # List all transactions
+      iex> list_transactions()
+      [%Transaction{}, ...]
+
+      # List transactions for a specific budget and date range
+      iex> list_transactions(%{
+      ...>   budget_id: 1,
+      ...>   start_date: ~U[2024-01-01 00:00:00Z],
+      ...>   end_date: ~U[2024-01-31 23:59:59Z]
+      ...> })
+      [%Transaction{}, ...]
+  """
+  @spec list_transactions(map()) :: [Transaction.t()]
+  def list_transactions(opts \\ %{}) do
+    Transaction
+    |> maybe_filter_by_budget(opts[:budget_id])
+    |> maybe_filter_by_date_range(opts[:start_date], opts[:end_date])
+    |> order_by([t], desc: t.date)
+    |> Repo.all()
+  end
+
+  # Private functions
+
+  defp maybe_filter_by_budget(query, nil), do: query
+
+  defp maybe_filter_by_budget(query, budget_id) do
+    where(query, [t], t.budget_id == ^budget_id)
+  end
+
+  defp maybe_filter_by_date_range(query, nil, nil), do: query
+
+  defp maybe_filter_by_date_range(query, start_date, nil) do
+    where(query, [t], t.date >= ^start_date)
+  end
+
+  defp maybe_filter_by_date_range(query, nil, end_date) do
+    where(query, [t], t.date <= ^end_date)
+  end
+
+  defp maybe_filter_by_date_range(query, start_date, end_date) do
+    where(query, [t], t.date >= ^start_date and t.date <= ^end_date)
+  end
+end
