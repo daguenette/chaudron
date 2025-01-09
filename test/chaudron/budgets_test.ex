@@ -2,55 +2,57 @@ defmodule Chaudron.BudgetsTest do
   use Chaudron.DataCase
   alias Chaudron.Budgets
 
-  # Define test data we'll reuse
+  # Tests for budget-related operations in the Chaudron application
   describe "budgets" do
-    # Valid attributes for creating a budget
+    # Valid attributes for creating a budget category
+    # Represents a typical needs-based budget with positive amount
     @valid_attrs %{
       category: "Groceries",
       budget: 500.0,
       bucket: :needs
     }
 
-    # Invalid attributes to test error cases
+    # Invalid attributes for testing error cases
+    # Contains nil category, negative amount, and invalid bucket type
     @invalid_attrs %{
       category: nil,
       budget: -500.0,
       bucket: :invalid
     }
 
-    # Each test starts with "test"
+    # Verifies that a budget can be created with valid attributes
+    # Checks category name, amount, and bucket type assignment
     test "create_budget/1 with valid data creates a budget" do
-      # Try to create a budget with valid data
       assert {:ok, budget} = Budgets.create_budget(@valid_attrs)
-      # Verify the created budget has the correct data
       assert budget.category == "Groceries"
       assert budget.budget == 500.0
       assert budget.bucket == :needs
     end
 
+    # Ensures that invalid attributes result in an error changeset
+    # Tests data validation for required fields and constraints
     test "create_budget/1 with invalid data returns error changeset" do
-      # Try to create a budget with invalid data
       assert {:error, %Ecto.Changeset{}} = Budgets.create_budget(@invalid_attrs)
     end
 
+    # Tests the ability to retrieve a budget by its category name
+    # Verifies both successful retrieval and nil response for missing categories
     test "get_budget_by_category/1 returns budget with matching category" do
-      # First create a budget
       {:ok, budget} = Budgets.create_budget(@valid_attrs)
-      # Then try to fetch it by category
       assert Budgets.get_budget_by_category("Groceries") == budget
-      # Also test the not-found case
       assert Budgets.get_budget_by_category("NonExistent") == nil
     end
 
+    # Confirms that all created budgets can be listed
+    # Checks that the list contains exactly the created budget
     test "list_budgets/1 returns all budgets" do
-      # Create a budget
       {:ok, budget} = Budgets.create_budget(@valid_attrs)
-      # Verify it appears in the list
       assert Budgets.list_budgets() == [budget]
     end
 
+    # Tests the bucket filtering functionality of list_budgets/1
+    # Creates budgets in different buckets and verifies filter results
     test "list_budgets/1 with bucket filter returns only matching budgets" do
-      # Create budgets in different buckets
       {:ok, needs_budget} = Budgets.create_budget(@valid_attrs)
 
       {:ok, bills_budget} =
@@ -60,7 +62,6 @@ defmodule Chaudron.BudgetsTest do
           bucket: :bills
         })
 
-      # Test filtering
       assert Budgets.list_budgets(bucket: :needs) == [needs_budget]
       assert Budgets.list_budgets(bucket: :bills) == [bills_budget]
     end
