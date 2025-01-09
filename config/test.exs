@@ -7,7 +7,7 @@ import Config
 # Run `mix help test` for more information.
 config :chaudron, Chaudron.Repo,
   username: "postgres",
-  password: "postgres",
+  password: "secret",
   hostname: "localhost",
   database: "chaudron_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,

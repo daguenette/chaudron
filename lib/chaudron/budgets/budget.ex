@@ -2,6 +2,17 @@ defmodule Chaudron.Budgets.Budget do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @type t :: %__MODULE__{
+          id: integer() | nil,
+          category: String.t() | nil,
+          spent: float() | nil,
+          budget: float() | nil,
+          bucket: :bills | :needs | :wants | nil,
+          transactions: [Chaudron.Transactions.Transaction.t()] | nil,
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
+
   schema "budget_categories" do
     field :category, :string
     field :spent, :float, default: 0.0
