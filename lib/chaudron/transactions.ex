@@ -67,6 +67,27 @@ defmodule Chaudron.Transactions do
   end
 
   @doc """
+  Deletes a transaction and updates the budget's spent amount.
+
+  ## Examples
+
+      iex> delete_transaction(transaction)
+      {:ok, %{transaction: %Transaction{}, budget_update: %Budget{}}}
+  """
+  @spec delete_transaction(Transaction.t()) ::
+          {:ok, %{transaction: Transaction.t(), budget_update: Budget.t()}}
+          | {:error, Ecto.Multi.name(), any(), %{optional(Ecto.Multi.name()) => any()}}
+  def delete_transaction(%Transaction{} = transaction) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete(:transaction, transaction)
+    |> Ecto.Multi.run(:budget_update, fn repo, _changes ->
+      budget = repo.get!(Budget, transaction.budget_id)
+      Budgets.update_spent_amount(budget)
+    end)
+    |> Repo.transaction()
+  end
+
+  @doc """
   Gets a transaction by ID.
 
   ## Examples

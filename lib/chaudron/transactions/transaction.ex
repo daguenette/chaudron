@@ -25,8 +25,8 @@ defmodule Chaudron.Transactions.Transaction do
   @doc false
   def changeset(transaction, attrs) do
     transaction
-    |> cast(attrs, [:date, :description, :amount])
-    |> validate_required([:date, :description, :amount])
+    |> cast(attrs, [:date, :description, :amount, :budget_id])
+    |> validate_required([:date, :description, :amount, :budget_id])
     |> validate_number(:amount, greater_than: 0)
     |> foreign_key_constraint(:budget_id)
     |> validate_date_not_in_future()
