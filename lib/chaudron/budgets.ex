@@ -161,6 +161,7 @@ defmodule Chaudron.Budgets do
 
     Budget
     |> maybe_filter_by_bucket(bucket)
+    |> order_by([b], desc: b.budget)
     |> Repo.all()
   end
 

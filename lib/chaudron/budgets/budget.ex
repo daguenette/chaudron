@@ -32,5 +32,6 @@ defmodule Chaudron.Budgets.Budget do
     |> validate_number(:budget, greater_than: 0)
     |> validate_number(:spent, greater_than_or_equal_to: 0)
     |> validate_inclusion(:bucket, [:bills, :needs, :wants])
+    |> unique_constraint(:category, message: "already exists")
   end
 end
