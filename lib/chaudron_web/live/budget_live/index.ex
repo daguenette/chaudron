@@ -1,7 +1,8 @@
 defmodule ChaudronWeb.BudgetLive.Index do
   use ChaudronWeb, :live_view
   alias Chaudron.Budgets
-  alias ChaudronWeb.ModalComponents
+  alias ChaudronWeb.FormComponents
+  alias ChaudronWeb.TableComponents
 
   def mount(_params, _session, socket) do
     budgets_by_bucket =
@@ -19,133 +20,120 @@ defmodule ChaudronWeb.BudgetLive.Index do
       |> assign(:selected_bucket, nil)
       |> assign(:selected_budget, nil)
       |> assign(:show_delete_confirmation, false)
+      |> assign(:column_names, ["Category", "Budget", "Spent", "Remaining"])
 
     {:ok, socket}
   end
 
   def render(assigns) do
     ~H"""
+    <!-- Modals -->
     <div class="content-container">
-      <ModalComponents.new_budget_form
+      <FormComponents.new_budget_form
         new_budget_form={@new_budget_form}
         selected_bucket={@selected_bucket}
         form_errors={@form_errors}
       />
 
-      <ModalComponents.edit_budget_form
+      <FormComponents.edit_budget_form
         edit_budget_form={@edit_budget_form}
         budget={@selected_budget}
         form_errors={@form_errors}
       />
 
-      <ModalComponents.delete_confirmation_form show_delete_confirmation={@show_delete_confirmation} />
-
+      <FormComponents.delete_confirmation_form show_delete_confirmation={@show_delete_confirmation} />
+      
+    <!-- Bill Content Header & Table -->
       <div class="section-spacing">
         <section class="section-container">
-          <.section_header
+          <TableComponents.table_content_header
             title="Bills"
             description="Essential monthly bills like rent, utilities, and loan payments."
             bucket={:bills}
+            event_name="new_budget"
           />
-          <.budget_table budgets={@bills} />
+          <TableComponents.budget_table
+            budgets={@bills}
+            empty_phrase="No budget categories found."
+            column_names={@column_names}
+          />
         </section>
-
+        
+    <!-- Needs Content Header & Table -->
         <section class="section-container">
-          <.section_header
+          <TableComponents.table_content_header
             title="Needs"
             description="Basic necessities like groceries, transportation, and healthcare."
             bucket={:needs}
+            event_name="new_budget"
           />
-          <.budget_table budgets={@needs} />
+          <TableComponents.budget_table
+            budgets={@needs}
+            empty_phrase="No budget categories found."
+            column_names={@column_names}
+          />
         </section>
-
+        
+    <!-- Wants Content Header & Table -->
         <section class="section-container">
-          <.section_header
+          <TableComponents.table_content_header
             title="Wants"
             description="Non-essential spending like entertainment, dining out, and hobbies."
             bucket={:wants}
+            event_name="new_budget"
           />
-          <.budget_table budgets={@wants} />
+          <TableComponents.budget_table
+            budgets={@wants}
+            empty_phrase="No budget categories found."
+            column_names={@column_names}
+          />
         </section>
       </div>
     </div>
     """
   end
 
-  # Function Components
+  # --- Event Handlers --- #
 
-  def section_header(assigns) do
-    ~H"""
-    <div class="header-wrapper">
-      <div class="header-content">
-        <h2 class="header-title">{@title}</h2>
-        <p class="header-description">
-          {@description}
-        </p>
-      </div>
-      <div class="button-wrapper">
-        <button type="button" class="button-primary" phx-click="new_budget" phx-value-bucket={@bucket}>
-          Add {@title} Category
-        </button>
-      </div>
-    </div>
-    """
+  @doc """
+  Handles various LiveView events.
+
+  ## Events
+
+  ### Modal Events
+    * `"close_modal"` - Closes any open modal and resets related assigns
+    * `"show_delete_confirmation"` - Displays the delete confirmation modal
+    * `"cancel_delete"` - Cancels the delete confirmation modal
+
+  ### Budget Events
+    * `"new_budget"` - Opens new budget form modal
+      * Required attrs: `%{"bucket" => "bills" | "needs" | "wants"}`
+
+    * `"save_budget"` - Creates a new budget category
+      * Required attrs: `%{"category" => string, "budget" => string, "bucket" => "bills" | "needs" | "wants"}`
+
+    * `"edit_budget"` - Opens edit form for a budget category
+      * Required attrs: `%{"id" => string}`
+
+    * `"update_budget"` - Updates an existing budget category
+      * Optional attrs: `%{"category" => string, "budget" => string}`
+
+    * `"delete_budget"` - Initiates budget deletion process
+
+    * `"confirm_delete"` - Confirms and executes budget deletion
+
+  """
+  # - Modal Events -
+  def handle_event("close_modal", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:new_budget_form, false)
+     |> assign(:edit_budget_form, false)
+     |> assign(:selected_bucket, nil)
+     |> assign(:selected_budget, nil)
+     |> assign(:form_errors, nil)
+     |> assign(:show_delete_confirmation, false)}
   end
-
-  def budget_table(assigns) do
-    ~H"""
-    <div class="table-wrapper">
-      <div class="table-scroll-container">
-        <div class="table-inner-wrapper">
-          <%= if Enum.empty?(@budgets) do %>
-            <div class="text-center py-6 text-gray-500 italic">
-              No budget categories found
-            </div>
-          <% else %>
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th scope="col" class="column table-header">Category</th>
-                  <th scope="col" class="column table-header-regular">Spent</th>
-                  <th scope="col" class="column table-header-regular">Budget</th>
-                  <th scope="col" class="column table-header-regular">Progress</th>
-                  <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-0">
-                    <span class="sr-only">Edit</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <%= for budget <- @budgets do %>
-                  <tr>
-                    <td class="column table-cell">{budget.category}</td>
-                    <td class="column table-cell-regular">${format_amount(budget.spent)}</td>
-                    <td class="column table-cell-regular">${format_amount(budget.budget)}</td>
-                    <td class="column table-cell-regular">
-                      <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        <div
-                          class={progress_bar_color(budget)}
-                          style={"width: #{calculate_progress(budget)}%"}
-                        >
-                        </div>
-                      </div>
-                    </td>
-                    <td class="table-cell-action">
-                      <a href="#" class="action-link" phx-click="edit_budget" phx-value-id={budget.id}>
-                        Edit<span class="sr-only">, <%= budget.category %></span>
-                      </a>
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-          <% end %>
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  # Event Handlers
 
   def handle_event("show_delete_confirmation", _params, socket) do
     {:noreply, assign(socket, :show_delete_confirmation, true)}
@@ -155,6 +143,8 @@ defmodule ChaudronWeb.BudgetLive.Index do
     {:noreply, assign(socket, :show_delete_confirmation, false)}
   end
 
+  # - Budget Events -
+
   def handle_event("new_budget", %{"bucket" => bucket}, socket) do
     {:noreply,
      socket
@@ -163,31 +153,30 @@ defmodule ChaudronWeb.BudgetLive.Index do
   end
 
   def handle_event(
-        "update_budget",
-        %{"category" => category, "budget" => budget},
+        "save_budget",
+        %{"category" => category, "budget" => budget, "bucket" => bucket},
         socket
       ) do
-    current_budget = socket.assigns.selected_budget
+    budget_amount =
+      case Float.parse(budget) do
+        {float_value, _remainder} -> float_value
+        :error -> String.to_integer(budget) * 1.0
+      end
 
-    attrs = %{}
-    attrs = if category != "", do: Map.put(attrs, :category, category), else: attrs
-
-    attrs =
-      if budget != "",
-        do: Map.put(attrs, :budget, parse_budget_amount(budget)),
-        else: attrs
-
-    case Budgets.update_budget(current_budget, attrs) do
-      {:ok, _updated_budget} ->
+    case Budgets.create_budget(%{
+           category: category,
+           budget: budget_amount,
+           bucket: String.to_existing_atom(bucket),
+           spent: 0.0
+         }) do
+      {:ok, _budget} ->
         budgets_by_bucket =
           Budgets.list_budgets()
           |> Enum.group_by(& &1.bucket)
 
         {:noreply,
          socket
-         |> put_flash(:info, "Budget category updated successfully")
-         |> assign(:edit_budget_form, false)
-         |> assign(:selected_budget, nil)
+         |> assign(:new_budget_form, false)
          |> assign(:bills, Map.get(budgets_by_bucket, :bills, []))
          |> assign(:needs, Map.get(budgets_by_bucket, :needs, []))
          |> assign(:wants, Map.get(budgets_by_bucket, :wants, []))}
@@ -217,21 +206,47 @@ defmodule ChaudronWeb.BudgetLive.Index do
     end
   end
 
-  def handle_event("close_modal", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:new_budget_form, false)
-     |> assign(:edit_budget_form, false)
-     |> assign(:selected_bucket, nil)
-     |> assign(:selected_budget, nil)
-     |> assign(:form_errors, nil)
-     |> assign(:show_delete_confirmation, false)}
+  def handle_event(
+        "update_budget",
+        %{"category" => category, "budget" => budget},
+        socket
+      ) do
+    current_budget = socket.assigns.selected_budget
+
+    attrs = %{}
+    attrs = if category != "", do: Map.put(attrs, :category, category), else: attrs
+
+    attrs =
+      if budget != "",
+        do: Map.put(attrs, :budget, parse_budget_amount(budget)),
+        else: attrs
+
+    case Budgets.update_budget(current_budget, attrs) do
+      {:ok, _updated_budget} ->
+        budgets_by_bucket =
+          Budgets.list_budgets()
+          |> Enum.group_by(& &1.bucket)
+
+        {:noreply,
+         socket
+         |> assign(:edit_budget_form, false)
+         |> assign(:selected_budget, nil)
+         |> assign(:bills, Map.get(budgets_by_bucket, :bills, []))
+         |> assign(:needs, Map.get(budgets_by_bucket, :needs, []))
+         |> assign(:wants, Map.get(budgets_by_bucket, :wants, []))}
+
+      {:error, changeset} ->
+        error_messages = extract_error_messages(changeset)
+
+        {:noreply,
+         socket
+         |> assign(:form_errors, error_messages)}
+    end
   end
 
   def handle_event("delete_budget", _params, socket) do
     case Budgets.delete_budget(socket.assigns.selected_budget) do
       {:ok, _deleted_budget} ->
-        # Refresh the budgets list
         budgets_by_bucket =
           Budgets.list_budgets()
           |> Enum.group_by(& &1.bucket)
@@ -273,7 +288,6 @@ defmodule ChaudronWeb.BudgetLive.Index do
       {:error, _changeset} ->
         {:noreply,
          socket
-         # Add this line
          |> assign(:show_delete_confirmation, false)
          |> put_flash(
            :error,
@@ -282,47 +296,23 @@ defmodule ChaudronWeb.BudgetLive.Index do
     end
   end
 
-  def handle_event(
-        "save_budget",
-        %{"category" => category, "budget" => budget, "bucket" => bucket},
-        socket
-      ) do
-    budget_amount =
-      case Float.parse(budget) do
-        {float_value, _remainder} -> float_value
-        :error -> String.to_integer(budget) * 1.0
-      end
-
-    case Budgets.create_budget(%{
-           category: category,
-           budget: budget_amount,
-           bucket: String.to_existing_atom(bucket),
-           spent: 0.0
-         }) do
-      {:ok, _budget} ->
-        # Refresh the budgets list
-        budgets_by_bucket =
-          Budgets.list_budgets()
-          |> Enum.group_by(& &1.bucket)
-
-        {:noreply,
-         socket
-         |> assign(:new_budget_form, false)
-         |> assign(:bills, Map.get(budgets_by_bucket, :bills, []))
-         |> assign(:needs, Map.get(budgets_by_bucket, :needs, []))
-         |> assign(:wants, Map.get(budgets_by_bucket, :wants, []))}
-
-      {:error, changeset} ->
-        error_messages = extract_error_messages(changeset)
-
-        {:noreply,
-         socket
-         |> assign(:form_errors, error_messages)}
-    end
-  end
-
   # Private Functions
 
+  @doc """
+  Extracts and formats error messages from an Ecto.Changeset.
+
+  Takes a changeset and returns a formatted string containing all error messages,
+  with field names humanized and errors joined with commas and periods.
+
+  ## Examples
+
+     iex> extract_error_messages(changeset)
+     "Category has already been taken. Budget must be greater than 0"
+
+     iex> extract_error_messages(changeset_with_no_errors)
+     ""
+  """
+  @spec extract_error_messages(Ecto.Changeset.t()) :: String.t()
   defp extract_error_messages(changeset) do
     Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
       Enum.reduce(opts, msg, fn {key, value}, acc ->
@@ -336,30 +326,32 @@ defmodule ChaudronWeb.BudgetLive.Index do
     |> Enum.join(". ")
   end
 
+  @doc """
+  Parses a string budget amount into a float value.
+
+  Takes a string representing a budget amount and converts it to a float.
+  Attempts to parse as float first, falls back to integer parsing if needed.
+  Always returns a float value.
+
+  ## Examples
+
+     iex> parse_budget_amount("123.45")
+     123.45
+
+     iex> parse_budget_amount("500")
+     500.0
+
+  ## Params
+   * budget - String representing a numeric value (decimal or integer)
+
+  ## Returns
+   Float value of the parsed budget amount
+  """
+  @spec parse_budget_amount(String.t()) :: float()
   defp parse_budget_amount(budget) do
     case Float.parse(budget) do
       {float_value, _remainder} -> float_value
       :error -> String.to_integer(budget) * 1.0
-    end
-  end
-
-  defp format_amount(amount) do
-    :erlang.float_to_binary(amount, decimals: 2)
-  end
-
-  defp calculate_progress(budget) do
-    progress = budget.spent / budget.budget * 100
-    min(progress, 100)
-  end
-
-  defp progress_bar_color(budget) do
-    progress = calculate_progress(budget)
-    base_classes = "h-2.5 rounded-full"
-
-    cond do
-      progress >= 90 -> "#{base_classes} bg-red-600"
-      progress >= 75 -> "#{base_classes} bg-yellow-500"
-      true -> "#{base_classes} bg-blue-600"
     end
   end
 end

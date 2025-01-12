@@ -1,5 +1,7 @@
-defmodule ChaudronWeb.ModalComponents do
+defmodule ChaudronWeb.FormComponents do
   use ChaudronWeb, :html
+
+  # Form Components
 
   def new_budget_form(assigns) do
     assigns = assign_new(assigns, :form_errors, fn -> nil end)
@@ -135,6 +137,8 @@ defmodule ChaudronWeb.ModalComponents do
     """
   end
 
+  # Form Elements
+
   def modal_close_button(assigns) do
     ~H"""
     <div class="modal-close-button-wrapper">
@@ -200,24 +204,14 @@ defmodule ChaudronWeb.ModalComponents do
 
     ~H"""
     <div class="input-wrapper">
-      <%= if @required do %>
-        <input
-          type={@type}
-          name={@name}
-          id={@id}
-          required
-          placeholder={@value}
-          class={"form-input #{if @form_errors, do: "border-red-500"}"}
-        />
-      <% else %>
-        <input
-          type={@type}
-          name={@name}
-          id={@id}
-          placeholder={@value}
-          class={"form-input #{if @form_errors, do: "border-red-500"}"}
-        />
-      <% end %>
+      <input
+        type={@type}
+        name={@name}
+        id={@id}
+        {%{"required" => @required }}
+        placeholder={@value}
+        class={"form-input #{if @form_errors, do: "border-red-500"}"}
+      />
     </div>
     """
   end
@@ -231,32 +225,22 @@ defmodule ChaudronWeb.ModalComponents do
       <div class="currency-symbol">
         <span class="text-gray-500 sm:text-sm">$</span>
       </div>
-      <%= if @required do %>
-        <input
-          type="number"
-          name="budget"
-          id="budget"
-          step="0.01"
-          min="0"
-          placeholder={format_amount(@value)}
-          class={"form-input-with-symbol #{if @form_errors, do: "border-red-500"}"}
-        />
-      <% else %>
-        <input
-          type="number"
-          name="budget"
-          id="budget"
-          step="0.01"
-          min="0"
-          placeholder={format_amount(@value)}
-          class={"form-input-with-symbol #{if @form_errors, do: "border-red-500"}"}
-        />
-      <% end %>
+      <input
+        type="number"
+        name="budget"
+        id="budget"
+        step="0.01"
+        min="0"
+        {%{"required" => @required }}
+        placeholder={format_amount(@value)}
+        class={"form-input-with-symbol #{if @form_errors, do: "border-red-500"}"}
+      />
     </div>
     """
   end
 
-  # Private Functions
+  # Form Private Functions
+
   defp format_amount(amount) when is_number(amount) do
     :erlang.float_to_binary(amount, decimals: 2)
   end
