@@ -21,6 +21,7 @@ defmodule ChaudronWeb.BudgetLive.Index do
       |> assign(:selected_budget, nil)
       |> assign(:show_delete_confirmation, false)
       |> assign(:column_names, ["Category", "Budget", "Spent", "Remaining"])
+      |> assign(:page_title, "Budgets")
 
     {:ok, socket}
   end
@@ -42,7 +43,7 @@ defmodule ChaudronWeb.BudgetLive.Index do
       />
 
       <FormComponents.delete_confirmation_form show_delete_confirmation={@show_delete_confirmation} />
-      
+
     <!-- Bill Content Header & Table -->
       <div class="section-spacing">
         <section class="section-container">
@@ -58,7 +59,7 @@ defmodule ChaudronWeb.BudgetLive.Index do
             column_names={@column_names}
           />
         </section>
-        
+
     <!-- Needs Content Header & Table -->
         <section class="section-container">
           <TableComponents.table_content_header
@@ -73,7 +74,7 @@ defmodule ChaudronWeb.BudgetLive.Index do
             column_names={@column_names}
           />
         </section>
-        
+
     <!-- Wants Content Header & Table -->
         <section class="section-container">
           <TableComponents.table_content_header
@@ -233,7 +234,9 @@ defmodule ChaudronWeb.BudgetLive.Index do
          |> assign(:selected_budget, nil)
          |> assign(:bills, Map.get(budgets_by_bucket, :bills, []))
          |> assign(:needs, Map.get(budgets_by_bucket, :needs, []))
-         |> assign(:wants, Map.get(budgets_by_bucket, :wants, []))}
+         |> assign(:wants, Map.get(budgets_by_bucket, :wants, []))
+        }
+
 
       {:error, changeset} ->
         error_messages = extract_error_messages(changeset)
@@ -298,20 +301,6 @@ defmodule ChaudronWeb.BudgetLive.Index do
 
   # Private Functions
 
-  @doc """
-  Extracts and formats error messages from an Ecto.Changeset.
-
-  Takes a changeset and returns a formatted string containing all error messages,
-  with field names humanized and errors joined with commas and periods.
-
-  ## Examples
-
-     iex> extract_error_messages(changeset)
-     "Category has already been taken. Budget must be greater than 0"
-
-     iex> extract_error_messages(changeset_with_no_errors)
-     ""
-  """
   @spec extract_error_messages(Ecto.Changeset.t()) :: String.t()
   defp extract_error_messages(changeset) do
     Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
@@ -326,27 +315,6 @@ defmodule ChaudronWeb.BudgetLive.Index do
     |> Enum.join(". ")
   end
 
-  @doc """
-  Parses a string budget amount into a float value.
-
-  Takes a string representing a budget amount and converts it to a float.
-  Attempts to parse as float first, falls back to integer parsing if needed.
-  Always returns a float value.
-
-  ## Examples
-
-     iex> parse_budget_amount("123.45")
-     123.45
-
-     iex> parse_budget_amount("500")
-     500.0
-
-  ## Params
-   * budget - String representing a numeric value (decimal or integer)
-
-  ## Returns
-   Float value of the parsed budget amount
-  """
   @spec parse_budget_amount(String.t()) :: float()
   defp parse_budget_amount(budget) do
     case Float.parse(budget) do

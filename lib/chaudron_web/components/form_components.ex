@@ -3,6 +3,10 @@ defmodule ChaudronWeb.FormComponents do
 
   # Form Components
 
+  attr :form_errors, :string, default: nil
+  attr :new_budget_form, :boolean, required: true
+  attr :selected_bucket, :atom, required: true
+
   def new_budget_form(assigns) do
     assigns = assign_new(assigns, :form_errors, fn -> nil end)
 
@@ -51,6 +55,10 @@ defmodule ChaudronWeb.FormComponents do
     <% end %>
     """
   end
+
+  attr :form_errors, :string, default: nil
+  attr :edit_budget_form, :boolean, required: true
+  attr :budget, :map, required: true
 
   def edit_budget_form(assigns) do
     assigns = assign_new(assigns, :form_errors, fn -> nil end)
@@ -107,6 +115,8 @@ defmodule ChaudronWeb.FormComponents do
     """
   end
 
+  attr :show_delete_confirmation, :boolean, required: true
+
   def delete_confirmation_form(assigns) do
     ~H"""
     <%= if @show_delete_confirmation do %>
@@ -137,8 +147,6 @@ defmodule ChaudronWeb.FormComponents do
     """
   end
 
-  # Form Elements
-
   def modal_close_button(assigns) do
     ~H"""
     <div class="modal-close-button-wrapper">
@@ -152,6 +160,10 @@ defmodule ChaudronWeb.FormComponents do
     """
   end
 
+  attr :budget, :map, default: nil
+  attr :title, :string, default: nil
+  attr :selected_bucket, :atom, default: nil
+
   def form_title(assigns) do
     ~H"""
     <h3 class="modal-title">
@@ -163,6 +175,9 @@ defmodule ChaudronWeb.FormComponents do
     </h3>
     """
   end
+
+  attr :text, :string, default: "Add Category"
+  attr :show_delete, :boolean, default: false
 
   def form_actions(assigns) do
     assigns = assign_new(assigns, :text, fn -> "Add Category" end)
@@ -185,10 +200,8 @@ defmodule ChaudronWeb.FormComponents do
     """
   end
 
-  def modal_form(assigns) do
-    ~H"""
-    """
-  end
+  attr :for, :string, required: true
+  attr :title, :string, required: true
 
   def form_label(assigns) do
     ~H"""
@@ -197,6 +210,13 @@ defmodule ChaudronWeb.FormComponents do
     </label>
     """
   end
+
+  attr :type, :string, required: true
+  attr :name, :string, required: true
+  attr :id, :string, required: true
+  attr :form_errors, :string, default: nil
+  attr :value, :string, default: nil
+  attr :required, :boolean, default: false
 
   def form_input(assigns) do
     assigns = assign_new(assigns, :form_errors, fn -> nil end)
@@ -215,6 +235,10 @@ defmodule ChaudronWeb.FormComponents do
     </div>
     """
   end
+
+  attr :form_errors, :string, default: nil
+  attr :value, :string, default: nil
+  attr :required, :boolean, default: false
 
   def currency_form_input(assigns) do
     assigns = assign_new(assigns, :form_errors, fn -> nil end)
@@ -238,8 +262,6 @@ defmodule ChaudronWeb.FormComponents do
     </div>
     """
   end
-
-  # Form Private Functions
 
   defp format_amount(amount) when is_number(amount) do
     :erlang.float_to_binary(amount, decimals: 2)
