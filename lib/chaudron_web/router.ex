@@ -19,6 +19,8 @@ defmodule ChaudronWeb.Router do
 
     live "/", BudgetLive.Index
     live "/budgets", BudgetLive.Index
+    live "/transactions", TransactionLive.Index
+    live "/settings", SettingLive.Index
   end
 
   # Other scopes may use custom stacks.

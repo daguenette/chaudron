@@ -22,6 +22,7 @@ defmodule ChaudronWeb.BudgetLive.Index do
       |> assign(:show_delete_confirmation, false)
       |> assign(:column_names, ["Category", "Budget", "Spent", "Remaining"])
       |> assign(:page_title, "Budgets")
+      |> assign(:current_path, "/budgets")
 
     {:ok, socket}
   end

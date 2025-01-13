@@ -32,12 +32,12 @@
               <li>
                 <ul role="list" class="-mx-2 space-y-1">
                   <li>
-                    <a
-                      href="/budgets"
-                      class="group flex gap-x-3 rounded-md bg-gray-800 p-2 text-sm/6 font-semibold text-white"
+                    <.link
+                      href={~p"/budgets"}
+                      class={"group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold #{if @current_path == "/budgets", do: "bg-gray-800 text-white", else: "text-gray-400 hover:bg-gray-800 hover:text-white"}"}
                     >
                       <svg
-                        class="size-6 shrink-0 text-white"
+                        class={"size-6 shrink-0 #{if @current_path == "/budgets", do: "text-white", else: "text-gray-400 group-hover:text-white"}"}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
@@ -50,7 +50,28 @@
                         />
                       </svg>
                       Budgets
-                    </a>
+                    </.link>
+                  </li>
+                  <li>
+                    <.link
+                      href={~p"/transactions"}
+                      class={"group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold #{if @current_path == "/transactions", do: "bg-gray-800 text-white", else: "text-gray-400 hover:bg-gray-800 hover:text-white"}"}
+                    >
+                      <svg
+                        class={"size-6 shrink-0 #{if @current_path == "/transactions", do: "text-white", else: "text-gray-400 group-hover:text-white"}"}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+                        />
+                      </svg>
+                      Transactions
+                    </.link>
                   </li>
                 </ul>
               </li>
@@ -58,12 +79,12 @@
                 <div class="text-xs/6 font-semibold text-gray-400">Account</div>
                 <ul role="list" class="-mx-2 mt-2 space-y-1">
                   <li>
-                    <a
-                      href="#"
-                      class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-400 hover:bg-gray-800 hover:text-white"
+                    <.link
+                      href={~p"/settings"}
+                      class={"group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold #{if @current_path == "/settings", do: "bg-gray-800 text-white", else: "text-gray-400 hover:bg-gray-800 hover:text-white"}"}
                     >
                       <svg
-                        class="size-6 shrink-0 text-gray-400 group-hover:text-white"
+                        class={"size-6 shrink-0 #{if @current_path == "/settings", do: "text-white", else: "text-gray-400 group-hover:text-white"}"}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
@@ -81,7 +102,7 @@
                         />
                       </svg>
                       Settings
-                    </a>
+                    </.link>
                   </li>
                 </ul>
               </li>
@@ -103,12 +124,12 @@
           <li>
             <ul role="list" class="-mx-2 space-y-1">
               <li>
-                <a
-                  href="/budgets"
-                  class="group flex gap-x-3 rounded-md bg-gray-800 p-2 text-sm/6 font-semibold text-white"
+                <.link
+                  href={~p"/budgets"}
+                  class={"group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold #{if @current_path == "/budgets", do: "bg-gray-800 text-white", else: "text-gray-400 hover:bg-gray-800 hover:text-white"}"}
                 >
                   <svg
-                    class="size-6 shrink-0 text-white"
+                    class={"size-6 shrink-0 #{if @current_path == "/budgets", do: "text-white", else: "text-gray-400 group-hover:text-white"}"}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke-width="1.5"
@@ -121,7 +142,28 @@
                     />
                   </svg>
                   Budgets
-                </a>
+                </.link>
+              </li>
+              <li>
+                <.link
+                  href={~p"/transactions"}
+                  class={"group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold #{if @current_path == "/transactions", do: "bg-gray-800 text-white", else: "text-gray-400 hover:bg-gray-800 hover:text-white"}"}
+                >
+                  <svg
+                    class={"size-6 shrink-0 #{if @current_path == "/transactions", do: "text-white", else: "text-gray-400 group-hover:text-white"}"}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+                    />
+                  </svg>
+                  Transactions
+                </.link>
               </li>
             </ul>
           </li>
@@ -129,12 +171,12 @@
             <div class="text-xs/6 font-semibold text-gray-400">Account</div>
             <ul role="list" class="-mx-2 mt-2 space-y-1">
               <li>
-                <a
-                  href="#"
-                  class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-400 hover:bg-gray-800 hover:text-white"
+                <.link
+                  href={~p"/settings"}
+                  class={"group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold #{if @current_path == "/settings", do: "bg-gray-800 text-white", else: "text-gray-400 hover:bg-gray-800 hover:text-white"}"}
                 >
                   <svg
-                    class="size-6 shrink-0 text-gray-400 group-hover:text-white"
+                    class={"size-6 shrink-0 #{if @current_path == "/settings", do: "text-white", else: "text-gray-400 group-hover:text-white"}"}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke-width="1.5"
@@ -152,7 +194,7 @@
                     />
                   </svg>
                   Settings
-                </a>
+                </.link>
               </li>
             </ul>
           </li>
