@@ -110,13 +110,13 @@ defmodule Chaudron.Budgets do
 
   ## Examples
 
-      iex> get_budget(123)
+      iex> get_budget("43254c77-7dc6-4868-957a-ae8636c37e5c")
       %Budget{}
 
-      iex> get_budget(456)
+      iex> get_budget("456")
       nil
   """
-  @spec get_budget(integer()) :: Budget.t() | nil
+  @spec get_budget(binary()) :: Budget.t() | nil
   def get_budget(id) do
     Repo.get(Budget, id)
   end
@@ -126,13 +126,13 @@ defmodule Chaudron.Budgets do
 
   ## Examples
 
-      iex> get_budget_with_transactions(123)
+      iex> get_budget_with_transactions("43254c77-7dc6-4868-957a-ae8636c37e5c")
       %Budget{transactions: [%Transaction{}, ...]}
 
-      iex> get_budget_with_transactions(456)
+      iex> get_budget_with_transactions("456")
       nil
   """
-  @spec get_budget_with_transactions(integer()) :: Budget.t() | nil
+  @spec get_budget_with_transactions(binary()) :: Budget.t() | nil
   def get_budget_with_transactions(id) do
     Budget
     |> Repo.get(id)

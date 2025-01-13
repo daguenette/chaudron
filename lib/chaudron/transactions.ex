@@ -104,41 +104,67 @@ defmodule Chaudron.Transactions do
   end
 
   @doc """
-  Lists transactions with optional filters.
+  Lists transactions with optional filters and pagination.
 
   ## Options
     * `:budget_id` - Filter by budget category
     * `:start_date` - Filter transactions after this date
     * `:end_date` - Filter transactions before this date
+    * `:page` - Page number (defaults to 1)
+    * `:per_page` - Number of items per page (defaults to 10)
 
   ## Examples
 
-      # List all transactions
-      iex> list_transactions()
-      [%Transaction{}, ...]
+      # List all transactions with pagination
+      iex> list_transactions(%{page: 1})
+      %{entries: [%Transaction{}, ...], page_number: 1, total_pages: 5}
 
-      # List transactions for a specific budget and date range
+      # List transactions for a specific budget and date range with pagination
       iex> list_transactions(%{
       ...>   budget_id: 1,
       ...>   start_date: ~U[2024-01-01 00:00:00Z],
-      ...>   end_date: ~U[2024-01-31 23:59:59Z]
+      ...>   end_date: ~U[2024-01-31 23:59:59Z],
+      ...>   page: 2
       ...> })
-      [%Transaction{}, ...]
+      %{entries: [%Transaction{}, ...], page_number: 2, total_pages: 3}
   """
-  @spec list_transactions(map()) :: [Transaction.t()]
+  @spec list_transactions(map()) :: %{
+          entries: [Transaction.t()],
+          page_number: integer(),
+          total_pages: integer()
+        }
   def list_transactions(opts \\ %{}) do
-    Transaction
-    |> maybe_filter_by_budget(opts[:budget_id])
-    |> maybe_filter_by_date_range(opts[:start_date], opts[:end_date])
-    |> order_by([t], desc: t.date)
-    |> Repo.all()
+    page = Map.get(opts, :page, 1)
+    per_page = Map.get(opts, :per_page, 10)
+
+    query =
+      Transaction
+      |> maybe_filter_by_budget(opts[:budget_id])
+      |> maybe_filter_by_date_range(opts[:start_date], opts[:end_date])
+      |> order_by([t], desc: t.date)
+      |> preload(:budget)
+
+    total_entries = Repo.aggregate(query, :count, :id)
+    total_pages = ceil(total_entries / per_page)
+
+    entries =
+      query
+      |> limit(^per_page)
+      |> offset(^((page - 1) * per_page))
+      |> Repo.all()
+
+    %{
+      entries: entries,
+      page_number: page,
+      total_pages: total_pages
+    }
   end
 
   # Private functions
 
   defp maybe_filter_by_budget(query, nil), do: query
 
-  defp maybe_filter_by_budget(query, budget_id) do
+  defp maybe_filter_by_budget(query, budget_id) when is_binary(budget_id) do
     where(query, [t], t.budget_id == ^budget_id)
   end
 

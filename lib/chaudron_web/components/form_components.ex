@@ -35,7 +35,7 @@ defmodule ChaudronWeb.FormComponents do
                     </div>
                     <div>
                       <.form_label for="budget" title="Budget Amount" />
-                      <.currency_form_input form_errors={@form_errors} required={true} />
+                      <.currency_form_input name="budget" form_errors={@form_errors} required={true} />
 
                       <%= if @form_errors do %>
                         <div class="mt-2 text-sm text-red-600">
@@ -92,6 +92,7 @@ defmodule ChaudronWeb.FormComponents do
                     <div>
                       <.form_label for="budget" title="Budget Amount" />
                       <.currency_form_input
+                        name="budget"
                         value={@budget.budget}
                         form_errors={@form_errors}
                         required={false}
@@ -103,6 +104,143 @@ defmodule ChaudronWeb.FormComponents do
                       <% end %>
 
                       <.form_actions text="Update Category" show_delete={true} />
+                    </div>
+                  </.form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    """
+  end
+
+  def new_transaction_form(assigns) do
+    assigns = assign_new(assigns, :form_errors, fn -> nil end)
+    assigns = assign_new(assigns, :budgets, fn -> [] end)
+
+    ~H"""
+    <%= if @new_transaction_form do %>
+      <div class="modal-backdrop"></div>
+      <div class="modal-container">
+        <div class="modal-content-wrapper">
+          <div class="modal-panel">
+            <.modal_close_button />
+            <div class="modal-body">
+              <div class="modal-content">
+                <.form_title title="Add New Transaction" />
+                <div class="modal-form-container">
+                  <.form for={%{}} phx-submit="save_transaction" class="modal-form">
+                    <div>
+                      <.form_label for="description" title="Description" />
+                      <.form_input
+                        type="text"
+                        name="description"
+                        id="description"
+                        form_errors={@form_errors}
+                        required={true}
+                      />
+                    </div>
+                    <div>
+                      <.form_label for="budget_id" title="Budget Category" />
+                      <.budget_select_input budgets={@budgets} form_errors={@form_errors} required={true} />
+                    </div>
+                    <div>
+                      <.form_label for="amount" title="Amount" />
+                      <.currency_form_input name="amount" form_errors={@form_errors} required={true} />
+
+                      <%= if @form_errors do %>
+                        <div class="mt-2 text-sm text-red-600">
+                          {@form_errors}
+                        </div>
+                      <% end %>
+
+                      <.form_actions text="Add Transaction" />
+                    </div>
+                  </.form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    """
+  end
+
+  attr :budgets, :list, required: true
+  attr :form_errors, :string, default: nil
+  attr :required, :boolean, default: false
+  attr :selected_budget_id, :integer, default: nil
+
+  def budget_select_input(assigns) do
+    ~H"""
+    <div class="input-wrapper">
+      <select
+        name="budget_id"
+        id="budget_id"
+        {%{"required" => @required }}
+        class={"form-input #{if @form_errors, do: "border-red-500"}"}
+      >
+        <option value="">Select a category</option>
+        <%= for budget <- @budgets do %>
+          <option value={budget.id} selected={budget.id == @selected_budget_id}>
+            {budget.category}
+          </option>
+        <% end %>
+      </select>
+    </div>
+    """
+  end
+
+  def edit_transaction_form(assigns) do
+    assigns = assign_new(assigns, :form_errors, fn -> nil end)
+    assigns = assign_new(assigns, :budgets, fn -> [] end)
+    assigns = assign_new(assigns, :transaction, fn -> nil end)
+
+    ~H"""
+    <%= if @edit_transaction_form do %>
+      <div class="modal-backdrop"></div>
+      <div class="modal-container">
+        <div class="modal-content-wrapper">
+          <div class="modal-panel">
+            <.modal_close_button />
+            <div class="modal-body">
+              <div class="modal-content">
+                <.form_title title={"Editing Transaction"} />
+                <div class="modal-form-container">
+                  <.form for={%{}} phx-submit="update_transaction" class="modal-form">
+                    <input type="hidden" name="transaction_id" value={@transaction.id} />
+                    <div>
+                      <.form_label for="description" title="Description" />
+                      <.form_input
+                        type="text"
+                        name="description"
+                        id="description"
+                        value={@transaction.description}
+                        form_errors={@form_errors}
+                      />
+                    </div>
+                    <div>
+                      <.form_label for="budget_id" title="Budget Category" />
+                      <.budget_select_input
+                        budgets={@budgets}
+                        form_errors={@form_errors}
+                        selected_budget_id={@transaction.budget_id}
+                      />
+                    </div>
+                    <div>
+                      <.form_label for="amount" title="Amount" />
+                      <.currency_form_input
+                        name="amount"
+                        value={@transaction.amount}
+                        form_errors={@form_errors}
+                      />
+                    </div>
+
+                    <div class="modal-form-actions">
+                      <.form_actions text="Update Transaction" show_delete={true} />
                     </div>
                   </.form>
                 </div>
@@ -239,6 +377,7 @@ defmodule ChaudronWeb.FormComponents do
   attr :form_errors, :string, default: nil
   attr :value, :string, default: nil
   attr :required, :boolean, default: false
+  attr :name, :string, required: true
 
   def currency_form_input(assigns) do
     assigns = assign_new(assigns, :form_errors, fn -> nil end)
@@ -251,8 +390,8 @@ defmodule ChaudronWeb.FormComponents do
       </div>
       <input
         type="number"
-        name="budget"
-        id="budget"
+        name={@name}
+        id={@name}
         step="0.01"
         min="0"
         {%{"required" => @required }}

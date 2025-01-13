@@ -17,8 +17,12 @@ defmodule ChaudronWeb.Router do
   scope "/", ChaudronWeb do
     pipe_through :browser
 
-    live "/", BudgetLive.Index
-    live "/budgets", BudgetLive.Index
+    live_session :default, on_mount: {ChaudronWeb.Layouts, :default} do
+      live "/", BudgetLive.Index, :index
+      live "/budgets", BudgetLive.Index, :index
+      live "/transactions", TransactionLive.Index, :index
+      live "/settings", SettingsLive.Index, :index
+    end
   end
 
   # Other scopes may use custom stacks.
@@ -26,7 +30,7 @@ defmodule ChaudronWeb.Router do
   #   pipe_through :api
   # end
 
-  # Enable LiveDashboard and Swoosh mailbox preview in development
+  # Enable LiveDashboard in development
   if Application.compile_env(:chaudron, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
     # it behind authentication and allow only admins to access it.
@@ -39,7 +43,6 @@ defmodule ChaudronWeb.Router do
       pipe_through :browser
 
       live_dashboard "/dashboard", metrics: ChaudronWeb.Telemetry
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end
 end
