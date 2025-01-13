@@ -193,11 +193,11 @@ defmodule ChaudronWeb.BudgetLive.Index do
   end
 
   def handle_event("edit_budget", %{"id" => id}, socket) do
-    case Budgets.get_budget(String.to_integer(id)) do
+    case Budgets.get_budget(id) do
       nil ->
         {:noreply,
          socket
-         |> put_flash(:error, "Budget category not found")}
+         |> put_flash(:error, "Budget not found")}
 
       budget ->
         {:noreply,
@@ -208,36 +208,28 @@ defmodule ChaudronWeb.BudgetLive.Index do
     end
   end
 
-  def handle_event(
-        "update_budget",
-        %{"category" => category, "budget" => budget},
-        socket
-      ) do
-    current_budget = socket.assigns.selected_budget
+  def handle_event("update_budget", %{"value" => form_data}, socket) when is_binary(form_data) do
+    params = URI.decode_query(form_data)
+    handle_event("update_budget", params, socket)
+  end
+
+  def handle_event("update_budget", params, socket) do
+    budget = socket.assigns.selected_budget
 
     attrs = %{}
-    attrs = if category != "", do: Map.put(attrs, :category, category), else: attrs
+    attrs = if params["category"] != "", do: Map.put(attrs, :category, params["category"]), else: attrs
+    attrs = if params["budget"] != "", do: Map.put(attrs, :budget, parse_amount(params["budget"])), else: attrs
+    attrs = if params["bucket"] != "", do: Map.put(attrs, :bucket, String.to_existing_atom(params["bucket"])), else: attrs
 
-    attrs =
-      if budget != "",
-        do: Map.put(attrs, :budget, parse_budget_amount(budget)),
-        else: attrs
-
-    case Budgets.update_budget(current_budget, attrs) do
-      {:ok, _updated_budget} ->
-        budgets_by_bucket =
-          Budgets.list_budgets()
-          |> Enum.group_by(& &1.bucket)
-
+    case Budgets.update_budget(budget, attrs) do
+      {:ok, _budget} ->
         {:noreply,
          socket
          |> assign(:edit_budget_form, false)
          |> assign(:selected_budget, nil)
-         |> assign(:bills, Map.get(budgets_by_bucket, :bills, []))
-         |> assign(:needs, Map.get(budgets_by_bucket, :needs, []))
-         |> assign(:wants, Map.get(budgets_by_bucket, :wants, []))
-        }
-
+         |> assign(:bills, Budgets.list_budgets(bucket: :bills))
+         |> assign(:needs, Budgets.list_budgets(bucket: :needs))
+         |> assign(:wants, Budgets.list_budgets(bucket: :wants))}
 
       {:error, changeset} ->
         error_messages = extract_error_messages(changeset)
@@ -321,6 +313,14 @@ defmodule ChaudronWeb.BudgetLive.Index do
     case Float.parse(budget) do
       {float_value, _remainder} -> float_value
       :error -> String.to_integer(budget) * 1.0
+    end
+  end
+
+  defp parse_amount(nil), do: nil
+  defp parse_amount(amount) when is_binary(amount) do
+    case Float.parse(amount) do
+      {float_value, _remainder} -> float_value
+      :error -> String.to_integer(amount) * 1.0
     end
   end
 end

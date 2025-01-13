@@ -2,17 +2,8 @@ defmodule Chaudron.Budgets.Budget do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @type t :: %__MODULE__{
-          id: integer() | nil,
-          category: String.t() | nil,
-          spent: float() | nil,
-          budget: float() | nil,
-          bucket: :bills | :needs | :wants | nil,
-          transactions: [Chaudron.Transactions.Transaction.t()] | nil,
-          inserted_at: DateTime.t() | nil,
-          updated_at: DateTime.t() | nil
-        }
-
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
   schema "budget_categories" do
     field :category, :string
     field :spent, :float, default: 0.0
@@ -25,13 +16,16 @@ defmodule Chaudron.Budgets.Budget do
   end
 
   @doc false
-  def changeset(budget, attrs) do
+  def changeset(%__MODULE__{id: nil} = budget, attrs) do
     budget
     |> cast(attrs, [:category, :spent, :budget, :bucket])
-    |> validate_required([:category, :spent, :budget, :bucket])
+    |> validate_required([:category, :budget, :bucket])
     |> validate_number(:budget, greater_than: 0)
-    |> validate_number(:spent, greater_than_or_equal_to: 0)
-    |> validate_inclusion(:bucket, [:bills, :needs, :wants])
-    |> unique_constraint(:category, message: "already exists")
+  end
+
+  def changeset(%__MODULE__{} = budget, attrs) do
+    budget
+    |> cast(attrs, [:category, :spent, :budget, :bucket])
+    |> validate_number(:budget, greater_than: 0)
   end
 end

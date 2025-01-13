@@ -11,4 +11,18 @@ defmodule ChaudronWeb.Layouts do
   use ChaudronWeb, :html
 
   embed_templates "layouts/*"
+
+  def on_mount(:default, _params, _session, socket) do
+    current_path =
+      case socket.private do
+        %{conn: %{request_path: path}} -> path
+        %{phoenix_live_view: {_view, action}} -> action[:request_path] || "/"
+        _ -> "/"
+      end
+
+    {:cont,
+     socket
+     |> assign(:current_path, current_path)
+     |> assign(:show_mobile_menu, false)}
+  end
 end
