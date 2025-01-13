@@ -20,7 +20,7 @@ defmodule ChaudronWeb.BudgetLive.Index do
       |> assign(:selected_bucket, nil)
       |> assign(:selected_budget, nil)
       |> assign(:show_delete_confirmation, false)
-      |> assign(:column_names, ["Category", "Budget", "Spent", "Remaining"])
+      |> assign(:column_names, ["Category", "Spent", "Budget", "Remaining"])
       |> assign(:page_title, "Budgets")
       |> assign(:current_path, "/budgets")
 
@@ -138,11 +138,16 @@ defmodule ChaudronWeb.BudgetLive.Index do
   end
 
   def handle_event("show_delete_confirmation", _params, socket) do
-    {:noreply, assign(socket, :show_delete_confirmation, true)}
+    {:noreply, socket
+    |> assign(:show_delete_confirmation, true)
+    |> assign(:edit_budget_form, false)}
   end
 
   def handle_event("cancel_delete", _params, socket) do
-    {:noreply, assign(socket, :show_delete_confirmation, false)}
+    {:noreply,
+     socket
+     |> assign(:show_delete_confirmation, false)
+     |> assign(:edit_budget_form, true)}
   end
 
   # - Budget Events -

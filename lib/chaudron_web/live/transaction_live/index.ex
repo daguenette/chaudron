@@ -143,12 +143,14 @@ defmodule ChaudronWeb.TransactionLive.Index do
   def handle_event("show_delete_confirmation", _params, socket) do
     {:noreply,
      socket
+     |> assign(:edit_transaction_form, false)
      |> assign(:show_delete_confirmation, true)}
   end
 
   def handle_event("cancel_delete", _params, socket) do
     {:noreply,
      socket
+     |> assign(:edit_transaction_form, true)
      |> assign(:show_delete_confirmation, false)}
   end
 
@@ -169,7 +171,7 @@ defmodule ChaudronWeb.TransactionLive.Index do
          |> assign(:total_pages, transactions_page.total_pages)
          |> assign(:budgets, Budgets.list_budgets())}
 
-      {:error, _changeset} ->
+      {:error, :transaction, _changeset, _changes} ->
         {:noreply,
          socket
          |> assign(:show_delete_confirmation, false)
