@@ -308,14 +308,6 @@ defmodule ChaudronWeb.BudgetLive.Index do
     |> Enum.join(". ")
   end
 
-  @spec parse_budget_amount(String.t()) :: float()
-  defp parse_budget_amount(budget) do
-    case Float.parse(budget) do
-      {float_value, _remainder} -> float_value
-      :error -> String.to_integer(budget) * 1.0
-    end
-  end
-
   defp parse_amount(nil), do: nil
   defp parse_amount(amount) when is_binary(amount) do
     case Float.parse(amount) do

@@ -64,7 +64,7 @@ defmodule ChaudronWeb.TransactionLive.Index do
     """
   end
 
-  @spec handle_event(<<_::64, _::_*8>>, any(), map()) :: {:noreply, map()}
+  # Form Events
   def handle_event("new_transaction", _params, socket) do
     {:noreply,
      socket
@@ -82,6 +82,7 @@ defmodule ChaudronWeb.TransactionLive.Index do
      |> assign(:form_errors, nil)}
   end
 
+  # Save Transaction Events
   def handle_event("save_transaction", %{"value" => form_data}, socket) do
     params = URI.decode_query(form_data)
     create_transaction_from_params(params, socket)
@@ -91,34 +92,7 @@ defmodule ChaudronWeb.TransactionLive.Index do
     create_transaction_from_params(params, socket)
   end
 
-  defp create_transaction_from_params(params, socket) do
-    attrs = %{
-      date: DateTime.utc_now(),
-      description: params["description"],
-      amount: parse_amount(params["amount"]),
-      budget_id: params["budget_id"]
-    }
-
-    case Transactions.create_transaction(attrs) do
-      {:ok, %{transaction: _transaction, budget_update: _budget}} ->
-        transactions_page = Transactions.list_transactions()
-        {:noreply,
-         socket
-         |> assign(:transactions, transactions_page.entries)
-         |> assign(:page_number, transactions_page.page_number)
-         |> assign(:total_pages, transactions_page.total_pages)
-         |> assign(:new_transaction_form, false)
-         |> assign(:form_errors, nil)}
-
-      {:error, :transaction, changeset, _} ->
-        error_messages = extract_error_messages(changeset)
-
-        {:noreply,
-         socket
-         |> assign(:form_errors, error_messages)}
-    end
-  end
-
+  # Edit Transaction Events
   def handle_event("edit_transaction", %{"id" => id}, socket) do
     case Transactions.get_transaction(id) do
       nil ->
@@ -165,6 +139,7 @@ defmodule ChaudronWeb.TransactionLive.Index do
     end
   end
 
+  # Delete Events
   def handle_event("show_delete_confirmation", _params, socket) do
     {:noreply,
      socket
@@ -202,6 +177,7 @@ defmodule ChaudronWeb.TransactionLive.Index do
     end
   end
 
+  # Pagination Events
   def handle_event("change_page", %{"page" => page}, socket) do
     page = String.to_integer(page)
     transactions_page = Transactions.list_transactions(%{page: page})
@@ -211,6 +187,35 @@ defmodule ChaudronWeb.TransactionLive.Index do
      |> assign(:transactions, transactions_page.entries)
      |> assign(:page_number, transactions_page.page_number)
      |> assign(:total_pages, transactions_page.total_pages)}
+  end
+
+  # Private Functions
+  defp create_transaction_from_params(params, socket) do
+    attrs = %{
+      date: DateTime.utc_now(),
+      description: params["description"],
+      amount: parse_amount(params["amount"]),
+      budget_id: params["budget_id"]
+    }
+
+    case Transactions.create_transaction(attrs) do
+      {:ok, %{transaction: _transaction, budget_update: _budget}} ->
+        transactions_page = Transactions.list_transactions()
+        {:noreply,
+         socket
+         |> assign(:transactions, transactions_page.entries)
+         |> assign(:page_number, transactions_page.page_number)
+         |> assign(:total_pages, transactions_page.total_pages)
+         |> assign(:new_transaction_form, false)
+         |> assign(:form_errors, nil)}
+
+      {:error, :transaction, changeset, _} ->
+        error_messages = extract_error_messages(changeset)
+
+        {:noreply,
+         socket
+         |> assign(:form_errors, error_messages)}
+    end
   end
 
   defp parse_amount(nil), do: nil
