@@ -114,31 +114,54 @@ defmodule Chaudron.TransactionsTest do
       assert is_nil(Transactions.get_transaction(transaction.id))
     end
 
-    # Tests transaction listing with various filters
-    # Verifies budget_id and date range filtering functionality
-    test "list_transactions/1 returns all transactions for a budget", %{budget: budget} do
-      attrs1 = Map.merge(@base_transaction_attrs, %{budget_id: budget.id})
-      attrs2 = Map.merge(@base_transaction_attrs, %{budget_id: budget.id, amount: 200.0})
-
-      {:ok, _result1} = Transactions.create_transaction(attrs1)
-      {:ok, _result2} = Transactions.create_transaction(attrs2)
-
-      transactions = Transactions.list_transactions(%{budget_id: budget.id})
-      assert length(transactions) == 2
-
-      filtered_transactions =
-        Transactions.list_transactions(%{
+    # Tests transaction listing with pagination and filters
+    test "list_transactions/1 returns paginated transactions", %{budget: budget} do
+      # Create 11 transactions to test pagination
+      Enum.each(1..11, fn i ->
+        attrs = Map.merge(@base_transaction_attrs, %{
           budget_id: budget.id,
-          start_date: ~U[2024-01-01 00:00:00Z],
-          end_date: ~U[2024-01-31 23:59:59Z]
+          amount: 100.0 + i,
+          description: "Transaction #{i}"
         })
+        {:ok, _result} = Transactions.create_transaction(attrs)
+      end)
 
-      assert length(filtered_transactions) == 2
+      # Test default pagination (page 1)
+      result = Transactions.list_transactions()
+      assert result.page_number == 1
+      assert result.total_pages == 2
+      assert length(result.entries) == 10
 
-      assert Transactions.list_transactions(%{
-               budget_id: budget.id,
-               start_date: ~U[2025-01-01 00:00:00Z]
-             }) == []
+      # Test second page
+      result = Transactions.list_transactions(%{page: 2})
+      assert result.page_number == 2
+      assert result.total_pages == 2
+      assert length(result.entries) == 1
+
+      # Test with budget_id filter
+      result = Transactions.list_transactions(%{budget_id: budget.id})
+      assert result.page_number == 1
+      assert result.total_pages == 2
+      assert length(result.entries) == 10
+
+      # Test with date range filter
+      result = Transactions.list_transactions(%{
+        budget_id: budget.id,
+        start_date: ~U[2024-01-01 00:00:00Z],
+        end_date: ~U[2024-01-31 23:59:59Z]
+      })
+      assert result.page_number == 1
+      assert result.total_pages == 2
+      assert length(result.entries) == 10
+
+      # Test with future date (should return empty page)
+      result = Transactions.list_transactions(%{
+        budget_id: budget.id,
+        start_date: ~U[2025-01-01 00:00:00Z]
+      })
+      assert result.page_number == 1
+      assert result.total_pages == 0
+      assert result.entries == []
     end
 
     # Verifies cumulative budget spent calculations
