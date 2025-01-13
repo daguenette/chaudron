@@ -17,7 +17,7 @@ defmodule ChaudronWeb.Router do
   scope "/", ChaudronWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", BudgetLive.Index
     live "/budgets", BudgetLive.Index
   end
 

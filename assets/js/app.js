@@ -22,10 +22,69 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
+let Hooks = {}
+
+// Sidebar hook for off-canvas menu
+Hooks.Sidebar = {
+  mounted() {
+    const menu = document.getElementById('mobile-menu')
+    const openButton = document.querySelector('button[aria-label="Open sidebar"]')
+    const closeButton = document.querySelector('button[aria-label="Close sidebar"]')
+    const backdrop = menu.querySelector('[aria-hidden="true"]')
+    const sidebar = menu.querySelector('.flex.w-full')
+
+    const toggleMenu = () => {
+      const isHidden = menu.classList.contains('hidden')
+      
+      if (isHidden) {
+        // Show menu
+        menu.classList.remove('hidden')
+        document.body.style.overflow = 'hidden'
+        
+        // Animate backdrop
+        backdrop.classList.add('transition-opacity', 'ease-linear', 'duration-300')
+        backdrop.classList.remove('opacity-0')
+        backdrop.classList.add('opacity-100')
+        
+        // Animate sidebar
+        sidebar.classList.add('transition', 'ease-in-out', 'duration-300', 'transform')
+        sidebar.classList.remove('-translate-x-full')
+        sidebar.classList.add('translate-x-0')
+      } else {
+        // Hide menu
+        document.body.style.overflow = ''
+        
+        // Animate backdrop
+        backdrop.classList.add('transition-opacity', 'ease-linear', 'duration-300')
+        backdrop.classList.remove('opacity-100')
+        backdrop.classList.add('opacity-0')
+        
+        // Animate sidebar
+        sidebar.classList.add('transition', 'ease-in-out', 'duration-300', 'transform')
+        sidebar.classList.remove('translate-x-0')
+        sidebar.classList.add('-translate-x-full')
+        
+        // Wait for animations to finish before hiding
+        setTimeout(() => {
+          menu.classList.add('hidden')
+          backdrop.classList.remove('transition-opacity', 'ease-linear', 'duration-300')
+          sidebar.classList.remove('transition', 'ease-in-out', 'duration-300', 'transform')
+        }, 300)
+      }
+    }
+
+    // Initialize menu
+    menu.classList.add('hidden')
+    openButton?.addEventListener('click', toggleMenu)
+    closeButton?.addEventListener('click', toggleMenu)
+  }
+}
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
+  params: {_csrf_token: csrfToken},
+  hooks: Hooks
 })
 
 // Show progress bar on live navigation and form submits

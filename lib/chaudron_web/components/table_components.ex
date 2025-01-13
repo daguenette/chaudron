@@ -1,7 +1,11 @@
 defmodule ChaudronWeb.TableComponents do
   use ChaudronWeb, :html
 
-  # Table Components
+  attr :title, :string, required: true
+  attr :description, :string, required: true
+  attr :bucket, :atom, required: true
+  attr :event_name, :string, required: true
+
   def table_content_header(assigns) do
     ~H"""
     <div class="header-wrapper">
@@ -15,6 +19,11 @@ defmodule ChaudronWeb.TableComponents do
     </div>
     """
   end
+
+  attr :budgets, :list, default: []
+  attr :transactions, :list, default: []
+  attr :empty_phrase, :string, required: true
+  attr :column_names, :list, required: true
 
   def budget_table(assigns) do
     ~H"""
@@ -39,7 +48,7 @@ defmodule ChaudronWeb.TableComponents do
     """
   end
 
-  # Table elements
+  attr :column_names, :list, required: true
 
   def table_header(assigns) do
     ~H"""
@@ -56,6 +65,8 @@ defmodule ChaudronWeb.TableComponents do
     </thead>
     """
   end
+
+  attr :budgets, :list, required: true
 
   def budget_table_body(assigns) do
     ~H"""
@@ -82,6 +93,8 @@ defmodule ChaudronWeb.TableComponents do
     """
   end
 
+  attr :transactions, :list, required: true
+
   def transactions_table_body(assigns) do
     ~H"""
     <tbody>
@@ -102,6 +115,10 @@ defmodule ChaudronWeb.TableComponents do
     """
   end
 
+  attr :phx_value_bucket, :atom, required: true
+  attr :title, :string, required: true
+  attr :event_name, :string, required: true
+
   def table_button(assigns) do
     ~H"""
     <div class="button-wrapper">
@@ -117,6 +134,8 @@ defmodule ChaudronWeb.TableComponents do
     """
   end
 
+  attr :title, :string, required: true
+
   def table_empty(assigns) do
     ~H"""
     <div class="text-center py-6 text-gray-500 italic">
@@ -125,7 +144,6 @@ defmodule ChaudronWeb.TableComponents do
     """
   end
 
-  # Private Table Functions
   defp format_amount(amount) do
     :erlang.float_to_binary(amount, decimals: 2)
   end
@@ -140,10 +158,9 @@ defmodule ChaudronWeb.TableComponents do
     base_classes = "h-2.5 rounded-full"
 
     cond do
-      actual_progress > 100 -> "#{base_classes} bg-red-600"
+      actual_progress > 100 -> "#{base_classes} bg-red-500"
       actual_progress == 100 -> "#{base_classes} bg-green-500"
-      actual_progress >= 75 -> "#{base_classes} bg-yellow-500"
-      true -> "#{base_classes} bg-blue-600"
+      true -> "#{base_classes} bg-blue-500"
     end
   end
 end

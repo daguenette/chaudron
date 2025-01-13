@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <g fill="white">
+    <!-- Stylized bar chart -->
+    <rect x="4" y="12" width="3" height="8" rx="1"/>
+    <rect x="9" y="8" width="3" height="12" rx="1"/>
+    <rect x="14" y="10" width="3" height="10" rx="1"/>
+    
+    <!-- Circle overlay representing a coin/budget -->
+    <path d="M19 4c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm1 0c0-1.66-1.34-3-3-3s-3 1.34-3 3c0 1.66 1.34 3 3 3s3-1.34 3-3z"/>
+  </g>
+</svg>
