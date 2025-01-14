@@ -2,6 +2,15 @@ defmodule Chaudron.Transactions.Transaction do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @type t :: %__MODULE__{
+    id: binary(),
+    date: DateTime.t(),
+    description: String.t(),
+    amount: float(),
+    budget_id: binary(),
+    user_id: binary()
+  }
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "budget_transactions" do

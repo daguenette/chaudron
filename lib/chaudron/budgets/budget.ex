@@ -2,6 +2,15 @@ defmodule Chaudron.Budgets.Budget do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @type t :: %__MODULE__{
+    id: binary(),
+    category: String.t(),
+    budget: float(),
+    spent: float(),
+    bucket: atom(),
+    user_id: binary()
+  }
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "budget_categories" do
