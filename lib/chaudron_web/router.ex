@@ -50,7 +50,6 @@ defmodule ChaudronWeb.Router do
       on_mount: [{ChaudronWeb.UserAuth, :ensure_authenticated}, {ChaudronWeb.Layouts, :default}] do
       live "/budgets", BudgetLive.Index, :index
       live "/transactions", TransactionLive.Index, :index
-      live "/settings", SettingsLive.Index, :index
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
     end

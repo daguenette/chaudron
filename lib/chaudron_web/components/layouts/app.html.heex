@@ -66,11 +66,11 @@
             <ul role="list" class="-mx-2 mt-2 space-y-1">
               <li>
                 <.link
-                  href={~p"/settings"}
+                  href={~p"/users/settings"}
                   class={"group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold #{if @current_path == "/settings", do: "bg-gray-800 text-white", else: "text-gray-400 hover:bg-gray-800 hover:text-white"}"}
                 >
                   <svg
-                    class={"size-6 shrink-0 #{if @current_path == "/settings", do: "text-white", else: "text-gray-400 group-hover:text-white"}"}
+                    class={"size-6 shrink-0 #{if @current_path == "/users/settings", do: "text-white", else: "text-gray-400 group-hover:text-white"}"}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke-width="1.5"
@@ -122,6 +122,34 @@
           />
         </svg>
       </button>
+      
+<!-- Auth links -->
+      <div class="flex-1"></div>
+      <div class="flex items-center gap-4">
+        <%= if @current_user do %>
+          <span class="text-sm text-gray-700">{@current_user.email}</span>
+          <.link
+            href={~p"/users/log_out"}
+            method="delete"
+            class="text-sm font-semibold text-gray-700 hover:text-gray-900"
+          >
+            Log out
+          </.link>
+        <% else %>
+          <.link
+            href={~p"/users/register"}
+            class="text-sm font-semibold text-gray-700 hover:text-gray-900"
+          >
+            Register
+          </.link>
+          <.link
+            href={~p"/users/log_in"}
+            class="text-sm font-semibold text-gray-700 hover:text-gray-900"
+          >
+            Log in
+          </.link>
+        <% end %>
+      </div>
     </div>
 
     <main class="py-10">
