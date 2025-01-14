@@ -6,22 +6,28 @@ defmodule ChaudronWeb.TransactionLive.Index do
   alias ChaudronWeb.FormComponents
 
   def mount(_params, _session, socket) do
-    transactions_page = Transactions.list_transactions()
+    if socket.assigns.current_user do
+      transactions_page = Transactions.list_transactions(%{user_id: socket.assigns.current_user.id})
 
-    {:ok,
-     socket
-     |> assign(:page_title, "Transactions")
-     |> assign(:transactions, transactions_page.entries)
-     |> assign(:page_number, transactions_page.page_number)
-     |> assign(:total_pages, transactions_page.total_pages)
-     |> assign(:column_names, ["Date", "Description", "Amount", "Category"])
-     |> assign(:empty_phrase, "No transactions found")
-     |> assign(:budgets, Budgets.list_budgets())
-     |> assign(:new_transaction_form, false)
-     |> assign(:edit_transaction_form, false)
-     |> assign(:selected_transaction, nil)
-     |> assign(:form_errors, nil)
-     |> assign(:show_delete_confirmation, false)}
+      {:ok,
+       socket
+       |> assign(:page_title, "Transactions")
+       |> assign(:transactions, transactions_page.entries)
+       |> assign(:page_number, transactions_page.page_number)
+       |> assign(:total_pages, transactions_page.total_pages)
+       |> assign(:column_names, ["Date", "Description", "Amount", "Category"])
+       |> assign(:empty_phrase, "No transactions found")
+       |> assign(:budgets, Budgets.list_budgets(socket.assigns.current_user.id))
+       |> assign(:new_transaction_form, false)
+       |> assign(:edit_transaction_form, false)
+       |> assign(:selected_transaction, nil)
+       |> assign(:form_errors, nil)
+       |> assign(:show_delete_confirmation, false)}
+    else
+      {:ok,
+       socket
+       |> redirect(to: ~p"/users/log_in")}
+    end
   end
 
   def render(assigns) do
@@ -94,7 +100,7 @@ defmodule ChaudronWeb.TransactionLive.Index do
 
   # Edit Transaction Events
   def handle_event("edit_transaction", %{"id" => id}, socket) do
-    case Transactions.get_transaction(id) do
+    case Transactions.get_transaction(id, socket.assigns.current_user.id) do
       nil ->
         {:noreply,
          socket
@@ -119,7 +125,10 @@ defmodule ChaudronWeb.TransactionLive.Index do
 
     case Transactions.update_transaction(transaction, attrs) do
       {:ok, %{transaction: _transaction}} ->
-        transactions_page = Transactions.list_transactions(%{page: socket.assigns.page_number})
+        transactions_page = Transactions.list_transactions(%{
+          user_id: socket.assigns.current_user.id,
+          page: socket.assigns.page_number
+        })
 
         {:noreply,
          socket
@@ -128,7 +137,7 @@ defmodule ChaudronWeb.TransactionLive.Index do
          |> assign(:transactions, transactions_page.entries)
          |> assign(:page_number, transactions_page.page_number)
          |> assign(:total_pages, transactions_page.total_pages)
-         |> assign(:budgets, Budgets.list_budgets())}
+         |> assign(:budgets, Budgets.list_budgets(socket.assigns.current_user.id))}
 
       {:error, :transaction, changeset, _changes} ->
         error_messages = extract_error_messages(changeset)
@@ -159,7 +168,10 @@ defmodule ChaudronWeb.TransactionLive.Index do
 
     case Transactions.delete_transaction(transaction) do
       {:ok, _result} ->
-        transactions_page = Transactions.list_transactions(%{page: socket.assigns.page_number})
+        transactions_page = Transactions.list_transactions(%{
+          user_id: socket.assigns.current_user.id,
+          page: socket.assigns.page_number
+        })
 
         {:noreply,
          socket
@@ -169,7 +181,7 @@ defmodule ChaudronWeb.TransactionLive.Index do
          |> assign(:transactions, transactions_page.entries)
          |> assign(:page_number, transactions_page.page_number)
          |> assign(:total_pages, transactions_page.total_pages)
-         |> assign(:budgets, Budgets.list_budgets())}
+         |> assign(:budgets, Budgets.list_budgets(socket.assigns.current_user.id))}
 
       {:error, :transaction, _changeset, _changes} ->
         {:noreply,
@@ -182,7 +194,10 @@ defmodule ChaudronWeb.TransactionLive.Index do
   # Pagination Events
   def handle_event("change_page", %{"page" => page}, socket) do
     page = String.to_integer(page)
-    transactions_page = Transactions.list_transactions(%{page: page})
+    transactions_page = Transactions.list_transactions(%{
+      user_id: socket.assigns.current_user.id,
+      page: page
+    })
 
     {:noreply,
      socket
@@ -197,12 +212,13 @@ defmodule ChaudronWeb.TransactionLive.Index do
       date: DateTime.utc_now(),
       description: params["description"],
       amount: parse_amount(params["amount"]),
-      budget_id: params["budget_id"]
+      budget_id: params["budget_id"],
+      user_id: socket.assigns.current_user.id
     }
 
     case Transactions.create_transaction(attrs) do
       {:ok, %{transaction: _transaction, budget_update: _budget}} ->
-        transactions_page = Transactions.list_transactions()
+        transactions_page = Transactions.list_transactions(%{user_id: socket.assigns.current_user.id})
         {:noreply,
          socket
          |> assign(:transactions, transactions_page.entries)
