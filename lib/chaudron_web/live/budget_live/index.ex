@@ -5,26 +5,33 @@ defmodule ChaudronWeb.BudgetLive.Index do
   alias ChaudronWeb.TableComponents
 
   def mount(_params, _session, socket) do
-    budgets_by_bucket =
-      Budgets.list_budgets()
-      |> Enum.group_by(& &1.bucket)
+    if socket.assigns[:current_user] do
+      budgets_by_bucket =
+        Budgets.list_budgets(socket.assigns.current_user.id)
+        |> Enum.group_by(& &1.bucket)
 
-    socket =
-      socket
-      |> assign(:bills, Map.get(budgets_by_bucket, :bills, []))
-      |> assign(:needs, Map.get(budgets_by_bucket, :needs, []))
-      |> assign(:wants, Map.get(budgets_by_bucket, :wants, []))
-      |> assign(:form_errors, nil)
-      |> assign(:new_budget_form, false)
-      |> assign(:edit_budget_form, false)
-      |> assign(:selected_bucket, nil)
-      |> assign(:selected_budget, nil)
-      |> assign(:show_delete_confirmation, false)
-      |> assign(:column_names, ["Category", "Spent", "Budget", "Remaining"])
-      |> assign(:page_title, "Budgets")
-      |> assign(:current_path, "/budgets")
+      socket =
+        socket
+        |> assign(:bills, Map.get(budgets_by_bucket, :bills, []))
+        |> assign(:needs, Map.get(budgets_by_bucket, :needs, []))
+        |> assign(:wants, Map.get(budgets_by_bucket, :wants, []))
+        |> assign(:form_errors, nil)
+        |> assign(:new_budget_form, false)
+        |> assign(:edit_budget_form, false)
+        |> assign(:selected_bucket, nil)
+        |> assign(:selected_budget, nil)
+        |> assign(:show_delete_confirmation, false)
+        |> assign(:column_names, ["Category", "Spent", "Budget", "Remaining"])
+        |> assign(:page_title, "Budgets")
+        |> assign(:current_path, "/budgets")
 
-    {:ok, socket}
+      {:ok, socket}
+    else
+      {:ok,
+       socket
+       |> put_flash(:error, "Please log in to access your budgets")
+       |> redirect(to: ~p"/users/log_in")}
+    end
   end
 
   def render(assigns) do
@@ -174,11 +181,12 @@ defmodule ChaudronWeb.BudgetLive.Index do
            category: category,
            budget: budget_amount,
            bucket: String.to_existing_atom(bucket),
-           spent: 0.0
+           spent: 0.0,
+           user_id: socket.assigns.current_user.id
          }) do
       {:ok, _budget} ->
         budgets_by_bucket =
-          Budgets.list_budgets()
+          Budgets.list_budgets(socket.assigns.current_user.id)
           |> Enum.group_by(& &1.bucket)
 
         {:noreply,
@@ -198,7 +206,7 @@ defmodule ChaudronWeb.BudgetLive.Index do
   end
 
   def handle_event("edit_budget", %{"id" => id}, socket) do
-    case Budgets.get_budget(id) do
+    case Budgets.get_budget(id, socket.assigns.current_user.id) do
       nil ->
         {:noreply,
          socket
@@ -232,9 +240,9 @@ defmodule ChaudronWeb.BudgetLive.Index do
          socket
          |> assign(:edit_budget_form, false)
          |> assign(:selected_budget, nil)
-         |> assign(:bills, Budgets.list_budgets(bucket: :bills))
-         |> assign(:needs, Budgets.list_budgets(bucket: :needs))
-         |> assign(:wants, Budgets.list_budgets(bucket: :wants))}
+         |> assign(:bills, Budgets.list_budgets(socket.assigns.current_user.id, bucket: :bills))
+         |> assign(:needs, Budgets.list_budgets(socket.assigns.current_user.id, bucket: :needs))
+         |> assign(:wants, Budgets.list_budgets(socket.assigns.current_user.id, bucket: :wants))}
 
       {:error, changeset} ->
         error_messages = extract_error_messages(changeset)
@@ -249,7 +257,7 @@ defmodule ChaudronWeb.BudgetLive.Index do
     case Budgets.delete_budget(socket.assigns.selected_budget) do
       {:ok, _deleted_budget} ->
         budgets_by_bucket =
-          Budgets.list_budgets()
+          Budgets.list_budgets(socket.assigns.current_user.id)
           |> Enum.group_by(& &1.bucket)
 
         {:noreply,
@@ -274,7 +282,7 @@ defmodule ChaudronWeb.BudgetLive.Index do
     case Budgets.delete_budget(socket.assigns.selected_budget) do
       {:ok, _deleted_budget} ->
         budgets_by_bucket =
-          Budgets.list_budgets()
+          Budgets.list_budgets(socket.assigns.current_user.id)
           |> Enum.group_by(& &1.bucket)
 
         {:noreply,

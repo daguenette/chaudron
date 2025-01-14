@@ -12,7 +12,8 @@ defmodule Chaudron.Transactions do
     * `:date` - DateTime of the transaction
     * `:description` - String description of the transaction
     * `:amount` - Float value of the transaction amount
-    * `:budget_id` - Integer ID of the associated budget category
+    * `:budget_id` - ID of the associated budget category
+    * `:user_id` - ID of the user who owns this transaction
 
   ## Examples
 
@@ -21,7 +22,8 @@ defmodule Chaudron.Transactions do
       ...>   date: ~U[2024-01-08 10:00:00Z],
       ...>   description: "Weekly groceries",
       ...>   amount: 150.50,
-      ...>   budget_id: 1
+      ...>   budget_id: "budget_id",
+      ...>   user_id: "user_id"
       ...> })
       {:ok, %{transaction: %Transaction{}, budget_update: %Budget{}}}
 
@@ -88,19 +90,21 @@ defmodule Chaudron.Transactions do
   end
 
   @doc """
-  Gets a transaction by ID.
+  Gets a transaction by ID and user_id.
 
   ## Examples
 
-      iex> get_transaction(123)
+      iex> get_transaction("123", "user_id")
       %Transaction{}
 
-      iex> get_transaction(456)
+      iex> get_transaction("456", "user_id")
       nil
   """
-  @spec get_transaction(integer()) :: Transaction.t() | nil
-  def get_transaction(id) do
-    Repo.get(Transaction, id)
+  @spec get_transaction(binary(), binary()) :: Transaction.t() | nil
+  def get_transaction(id, user_id) do
+    Transaction
+    |> where([t], t.id == ^id and t.user_id == ^user_id)
+    |> Repo.one()
   end
 
   @doc """
@@ -112,16 +116,18 @@ defmodule Chaudron.Transactions do
     * `:end_date` - Filter transactions before this date
     * `:page` - Page number (defaults to 1)
     * `:per_page` - Number of items per page (defaults to 10)
+    * `:user_id` - Required. Filter transactions by user
 
   ## Examples
 
       # List all transactions with pagination
-      iex> list_transactions(%{page: 1})
+      iex> list_transactions(%{user_id: "user_id", page: 1})
       %{entries: [%Transaction{}, ...], page_number: 1, total_pages: 5}
 
       # List transactions for a specific budget and date range with pagination
       iex> list_transactions(%{
-      ...>   budget_id: 1,
+      ...>   user_id: "user_id",
+      ...>   budget_id: "budget_id",
       ...>   start_date: ~U[2024-01-01 00:00:00Z],
       ...>   end_date: ~U[2024-01-31 23:59:59Z],
       ...>   page: 2
@@ -136,9 +142,11 @@ defmodule Chaudron.Transactions do
   def list_transactions(opts \\ %{}) do
     page = Map.get(opts, :page, 1)
     per_page = Map.get(opts, :per_page, 10)
+    user_id = Map.get(opts, :user_id)
 
     query =
       Transaction
+      |> where([t], t.user_id == ^user_id)
       |> maybe_filter_by_budget(opts[:budget_id])
       |> maybe_filter_by_date_range(opts[:start_date], opts[:end_date])
       |> order_by([t], desc: t.date)

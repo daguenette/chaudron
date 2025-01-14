@@ -11,6 +11,7 @@ defmodule Chaudron.Budgets do
     * `:category` - String name of the budget category
     * `:budget` - Float value for the allocated budget amount
     * `:bucket` - Atom of either `:bills`, `:needs`, or `:wants`
+    * `:user_id` - ID of the user who owns this budget
 
   ## Optional Attributes
     * `:spent` - Float value for amount spent (defaults to 0.0)
@@ -21,7 +22,8 @@ defmodule Chaudron.Budgets do
       iex> create_budget(%{
       ...>   category: "Groceries",
       ...>   budget: 500.0,
-      ...>   bucket: :needs
+      ...>   bucket: :needs,
+      ...>   user_id: "user_id"
       ...> })
       {:ok, %Budget{}}
 
@@ -69,21 +71,21 @@ defmodule Chaudron.Budgets do
   end
 
   @doc """
-  Gets a budget category by its name.
-  Returns nil if no budget with that category exists.
+  Gets a budget category by its name and user_id.
+  Returns nil if no budget with that category exists for the user.
 
   ## Examples
 
-      iex> get_budget_by_category("Groceries")
+      iex> get_budget_by_category("Groceries", "user_id")
       %Budget{}
 
-      iex> get_budget_by_category("NonExistent")
+      iex> get_budget_by_category("NonExistent", "user_id")
       nil
   """
-  @spec get_budget_by_category(String.t()) :: Budget.t() | nil
-  def get_budget_by_category(category) when is_binary(category) do
+  @spec get_budget_by_category(String.t(), binary()) :: Budget.t() | nil
+  def get_budget_by_category(category, user_id) when is_binary(category) do
     Budget
-    |> where([b], b.category == ^category)
+    |> where([b], b.category == ^category and b.user_id == ^user_id)
     |> Repo.one()
   end
 
@@ -106,19 +108,21 @@ defmodule Chaudron.Budgets do
   end
 
   @doc """
-  Gets a budget category by ID.
+  Gets a budget category by ID and user_id.
 
   ## Examples
 
-      iex> get_budget("43254c77-7dc6-4868-957a-ae8636c37e5c")
+      iex> get_budget("43254c77-7dc6-4868-957a-ae8636c37e5c", "user_id")
       %Budget{}
 
-      iex> get_budget("456")
+      iex> get_budget("456", "user_id")
       nil
   """
-  @spec get_budget(binary()) :: Budget.t() | nil
-  def get_budget(id) do
-    Repo.get(Budget, id)
+  @spec get_budget(binary(), binary()) :: Budget.t() | nil
+  def get_budget(id, user_id) do
+    Budget
+    |> where([b], b.id == ^id and b.user_id == ^user_id)
+    |> Repo.one()
   end
 
   @doc """
@@ -126,40 +130,42 @@ defmodule Chaudron.Budgets do
 
   ## Examples
 
-      iex> get_budget_with_transactions("43254c77-7dc6-4868-957a-ae8636c37e5c")
+      iex> get_budget_with_transactions("43254c77-7dc6-4868-957a-ae8636c37e5c", "user_id")
       %Budget{transactions: [%Transaction{}, ...]}
 
-      iex> get_budget_with_transactions("456")
+      iex> get_budget_with_transactions("456", "user_id")
       nil
   """
-  @spec get_budget_with_transactions(binary()) :: Budget.t() | nil
-  def get_budget_with_transactions(id) do
+  @spec get_budget_with_transactions(binary(), binary()) :: Budget.t() | nil
+  def get_budget_with_transactions(id, user_id) do
     Budget
-    |> Repo.get(id)
+    |> where([b], b.id == ^id and b.user_id == ^user_id)
+    |> Repo.one()
     |> Repo.preload(:transactions)
   end
 
   @doc """
-  Lists all budget categories with optional bucket type filter.
+  Lists all budget categories with optional bucket type filter for a specific user.
 
   ## Options
     * `:bucket` - Filter budgets by bucket type (:bills, :needs, :wants)
 
   ## Examples
 
-      # List all budgets
-      iex> list_budgets()
+      # List all budgets for a user
+      iex> list_budgets("user_id")
       [%Budget{}, ...]
 
-      # List only 'needs' budgets
-      iex> list_budgets(bucket: :needs)
+      # List only 'needs' budgets for a user
+      iex> list_budgets("user_id", bucket: :needs)
       [%Budget{}, ...]
   """
-  @spec list_budgets(keyword()) :: [Budget.t()]
-  def list_budgets(opts \\ []) do
+  @spec list_budgets(binary(), keyword()) :: [Budget.t()]
+  def list_budgets(user_id, opts \\ []) do
     bucket = Keyword.get(opts, :bucket)
 
     Budget
+    |> where([b], b.user_id == ^user_id)
     |> maybe_filter_by_bucket(bucket)
     |> order_by([b], desc: b.budget)
     |> Repo.all()
